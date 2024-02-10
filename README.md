@@ -1,5 +1,5 @@
 # JPT-swift
-Jewish candle lighting and other prayer time notifications for Swift
+Jewish candle lighting and other prayer time notifications for Swift; ideally able to port to all devices, and include reminders or notifications to help remind if needed
 
 (from Chabad.org)
 
