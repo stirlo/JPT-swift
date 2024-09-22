@@ -5,21 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zmanim to ICS Converter</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="jewish-calendar-icon.svg">
-    <link rel="apple-touch-icon" sizes="180x180" href="jewish-calendar-icon.svg">
-
-    <!-- Open Graph meta tags -->
-    <meta property="og:title" content="Zmanim to ICS Converter" />
-    <meta property="og:description" content="Convert Jewish prayer times (Zmanim) to ICS calendar format" />
-    <meta property="og:url" content="https://your-github-pages-url.com/zmanim-to-ics/" />
-    <meta property="og:image" content="https://your-github-pages-url.com/zmanim-to-ics/jewish-calendar-icon.svg" />
-    <meta property="og:type" content="website" />
-
-    <!-- Twitter Card meta tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Zmanim to ICS Converter">
-    <meta name="twitter:description" content="Convert Jewish prayer times (Zmanim) to ICS calendar format">
-    <meta name="twitter:image" content="https://your-github-pages-url.com/zmanim-to-ics/jewish-calendar-icon.svg">
+    <link rel="icon" type="image/svg+xml" href="https://openmoji.org/data/color/svg/1F5D3.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://openmoji.org/data/color/72x72/1F5D3.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://openmoji.org/data/color/618x618/1F5D3.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://openmoji.org/data/color/618x618/1F5D3.png">
 </head>
 <body>
     <header>
@@ -29,43 +18,33 @@
     <main>
         <section id="input-section">
             <h2>Input Zmanim Data</h2>
+            <div class="instructions">
+                <h3>How to use this converter:</h3>
+                <ol>
+                    <li>Visit the <a href="https://www.chabad.org/calendar/zmanim_cdo/aid/143790/jewish/Zmanim-Halachic-Times.htm" target="_blank">Chabad.org Zmanim page</a>.</li>
+                    <li>Enter your location and select the correct option from the dropdown.</li>
+                    <li>On the results page, click either:
+                        <ul>
+                            <li>"Monthly view" to see a table of Zmanim for the entire month, or</li>
+                            <li>"RSS" icon (usually at the bottom of the page) to view the RSS feed.</li>
+                        </ul>
+                    </li>
+                    <li>Copy the entire contents of the monthly view table or the RSS feed.</li>
+                    <li>Paste the copied content into the text box below.</li>
+                    <li>Select your preferred language and click "Convert to ICS".</li>
+                    <li>Download the generated ICS file to import into your calendar application.</li>
+                </ol>
+            </div>
             <form id="zmanim-form">
-                <textarea id="zmanim-input" rows="10" cols="50" placeholder="Paste your Zmanim data here..."></textarea>
+                <textarea id="zmanim-input" rows="10" cols="50" placeholder="Paste your Zmanim data here from Chabad.org (monthly view or RSS feed)..."></textarea>
 
-                <fieldset>
-                    <legend>Select Prayer Times to Include:</legend>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="dawn" name="prayerTimes" value="dawn" checked>
-                        <label for="dawn">Dawn</label>
-
-                        <input type="checkbox" id="earliestTallit" name="prayerTimes" value="earliestTallit" checked>
-                        <label for="earliestTallit">Earliest Tallit</label>
-
-                        <input type="checkbox" id="sunrise" name="prayerTimes" value="sunrise" checked>
-                        <label for="sunrise">Sunrise</label>
-
-                        <!-- Add more checkboxes for other prayer times -->
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Language:</legend>
+                <div>
+                    <label for="language-select">Language:</label>
                     <select id="language-select" name="language">
                         <option value="en">English</option>
                         <option value="he">Hebrew</option>
-                        <!-- Add more language options as needed -->
                     </select>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Calendar Type:</legend>
-                    <select id="calendar-type" name="calendarType">
-                        <option value="google">Google Calendar</option>
-                        <option value="apple">Apple Calendar</option>
-                        <option value="outlook">Outlook</option>
-                        <option value="generic">Generic ICS</option>
-                    </select>
-                </fieldset>
+                </div>
 
                 <button type="submit">Convert to ICS</button>
             </form>
