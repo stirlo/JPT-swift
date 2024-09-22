@@ -25,4 +25,4 @@ Data source: [Chabad.org](https://www.chabad.org/)
 
 ## License
 
-Copyright © [Current Year] Zmanim to ICS Converter. All rights reserved.
+Copyright © 2024 Zmanim to ICS Converter. All rights reserved.
