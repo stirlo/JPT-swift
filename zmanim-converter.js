@@ -48,14 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const items = xmlDoc.getElementsByTagName("item");
         let zmanimData = [];
 
-        const hebrewDate = xmlDoc.getElementsByTagName("hebrew_date")[0].textContent;
-        const englishDate = xmlDoc.getElementsByTagName("english_date")[0].textContent;
-        zmanimData.push({ date: englishDate, hebrewDate: hebrewDate, zmanim: {} });
-
         for (let item of items) {
             const title = item.getElementsByTagName("title")[0].textContent;
-            const [zman, time] = title.split(" - ");
-            zmanimData[0].zmanim[zman.trim()] = time.split(" -- ")[0].trim();
+            const [zman, dateTime] = title.split(" - ");
+            const [date, time] = dateTime.split(", ");
+            zmanimData.push({ zman: zman.trim(), date: date.trim(), time: time.trim() });
         }
 
         return zmanimData;
@@ -71,14 +68,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (values.length < 3) continue;
 
             const date = `${values[2]} ${headers[2]} ${new Date().getFullYear()}`;
-            const hebrewDate = `${values[1]} ${headers[1]}`;
-            const zmanim = {};
 
             for (let j = 3; j < headers.length; j++) {
-                zmanim[headers[j]] = values[j];
+                zmanimData.push({ 
+                    zman: headers[j], 
+                    date: date, 
+                    time: values[j] 
+                });
             }
-
-            zmanimData.push({ date, hebrewDate, zmanim });
         }
 
         return zmanimData;
@@ -87,15 +84,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function convertZmanimToICS(zmanimData, language) {
         let icsEvents = [];
 
-        for (let dayData of zmanimData) {
-            const date = new Date(dayData.date);
-            for (let [zman, time] of Object.entries(dayData.zmanim)) {
-                const [hours, minutes] = time.split(':');
-                const eventDate = new Date(date);
-                eventDate.setHours(parseInt(hours), parseInt(minutes));
-
-                icsEvents.push(createICSEvent(zman, eventDate, language));
-            }
+        for (let data of zmanimData) {
+            const dateTime = new Date(`${data.date} ${data.time}`);
+            icsEvents.push(createICSEvent(data.zman, dateTime, language));
         }
 
         return generateICSContent(icsEvents);
