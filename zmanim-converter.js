@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(apiUrl);
             const data = await response.json();
+
+            if (!data.items || !Array.isArray(data.items)) {
+                throw new Error('Unexpected API response format');
+            }
+
             const icsData = convertZmanimToICS(data.items);
             conversionMessage.textContent = 'Conversion successful!';
             outputSection.style.display = 'block';
@@ -42,12 +47,28 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         } catch (error) {
             conversionMessage.textContent = 'Error: ' + error.message;
+            console.error('API Response:', error);
             outputSection.style.display = 'block';
         }
     }
 
     function convertZmanimToICS(zmanimData) {
-        let icsEvents = zmanimData.map(item => createICSEvent(item.title, new Date(item.date)));
+        if (!zmanimData || zmanimData.length === 0) {
+            throw new Error('No zmanim data available for the specified date range and location');
+        }
+
+        let icsEvents = zmanimData.map(item => {
+            if (!item.title || !item.date) {
+                console.warn('Invalid item:', item);
+                return null;
+            }
+            return createICSEvent(item.title, new Date(item.date));
+        }).filter(event => event !== null);
+
+        if (icsEvents.length === 0) {
+            throw new Error('No valid events could be created from the data');
+        }
+
         return generateICSContent(icsEvents);
     }
 
