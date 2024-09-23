@@ -1,35 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('zmanim-form');
-    const zmanimInput = document.getElementById('zmanim-input');
     const outputSection = document.getElementById('output-section');
     const conversionMessage = document.getElementById('conversion-message');
     const downloadButton = document.getElementById('download-ics');
 
-    const MAX_FILE_SIZE = 1024 * 1024; // 1 MB
-
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const inputData = zmanimInput.value;
-        const language = document.getElementById('language-select').value;
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
 
-        if (inputData.length > MAX_FILE_SIZE) {
-            conversionMessage.textContent = 'Error: Input data is too large. Please limit to 1 MB.';
-            outputSection.style.display = 'block';
-            return;
-        }
-
-        processZmanimData(inputData, language);
+        fetchZmanim(latitude, longitude, startDate, endDate);
     });
 
-    function processZmanimData(inputData, language) {
+    async function fetchZmanim(latitude, longitude, startDate, endDate) {
+        const apiUrl = `https://www.hebcal.com/zmanim?cfg=json&latitude=${latitude}&longitude=${longitude}&start=${startDate}&end=${endDate}`;
+
         try {
-            let zmanimData;
-            if (inputData.trim().startsWith('<?xml') || inputData.trim().startsWith('<rss')) {
-                zmanimData = parseRssData(inputData);
-            } else {
-                zmanimData = parseMonthlyViewData(inputData);
-            }
-            const icsData = convertZmanimToICS(zmanimData, language);
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            const icsData = convertZmanimToICS(data.items);
             conversionMessage.textContent = 'Conversion successful!';
             outputSection.style.display = 'block';
             downloadButton.onclick = function() {
@@ -41,58 +32,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function parseRssData(rssData) {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(rssData, "text/xml");
-
-        const items = xmlDoc.getElementsByTagName("item");
-        let zmanimData = [];
-
-        for (let item of items) {
-            const title = item.getElementsByTagName("title")[0].textContent;
-            const [zman, dateTime] = title.split(" - ");
-            const [date, time] = dateTime.split(", ");
-            zmanimData.push({ zman: zman.trim(), date: date.trim(), time: time.trim() });
-        }
-
-        return zmanimData;
-    }
-
-    function parseMonthlyViewData(inputData) {
-        const lines = inputData.trim().split('\n');
-        const headers = lines[0].split(/\s+/).filter(h => h.trim() !== '');
-        const zmanimData = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(/\s+/).filter(v => v.trim() !== '');
-            if (values.length < 3) continue;
-
-            const date = `${values[2]} ${headers[2]} ${new Date().getFullYear()}`;
-
-            for (let j = 3; j < headers.length; j++) {
-                zmanimData.push({ 
-                    zman: headers[j], 
-                    date: date, 
-                    time: values[j] 
-                });
-            }
-        }
-
-        return zmanimData;
-    }
-
-    function convertZmanimToICS(zmanimData, language) {
-        let icsEvents = [];
-
-        for (let data of zmanimData) {
-            const dateTime = new Date(`${data.date} ${data.time}`);
-            icsEvents.push(createICSEvent(data.zman, dateTime, language));
-        }
-
+    function convertZmanimToICS(zmanimData) {
+        let icsEvents = zmanimData.map(item => createICSEvent(item.title, new Date(item.date)));
         return generateICSContent(icsEvents);
     }
 
-    function createICSEvent(summary, date, language) {
+    function createICSEvent(summary, date) {
         const dtstart = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const dtend = new Date(date.getTime() + 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
