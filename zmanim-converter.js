@@ -3,6 +3,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const outputSection = document.getElementById('output-section');
     const conversionMessage = document.getElementById('conversion-message');
     const downloadButton = document.getElementById('download-ics');
+    const getLocationButton = document.getElementById('get-location');
+
+    getLocationButton.addEventListener('click', function() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude.toFixed(4);
+                document.getElementById('longitude').value = position.coords.longitude.toFixed(4);
+            }, function(error) {
+                alert("Error: " + error.message);
+            });
+        } else {
+            alert("Geolocation is not supported by your browser");
+        }
+    });
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
