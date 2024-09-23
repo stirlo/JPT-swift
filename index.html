@@ -17,36 +17,31 @@
 
     <main>
         <section id="input-section">
-            <h2>Input Zmanim Data</h2>
-            <div class="instructions">
-                <h3>How to use this converter:</h3>
-                <ol>
-                    <li>Visit the <a href="https://www.chabad.org/calendar/zmanim_cdo/aid/143790/jewish/Zmanim-Halachic-Times.htm" target="_blank">Chabad.org Zmanim page</a>.</li>
-                    <li>Enter your location and select the correct option from the dropdown.</li>
-                    <li>On the results page, click either:
-                        <ul>
-                            <li>"Monthly view" to see a table of Zmanim for the entire month, or</li>
-                            <li>"RSS" icon (usually at the bottom of the page) to view the RSS feed.</li>
-                        </ul>
-                    </li>
-                    <li>Copy the entire contents of the monthly view table or the RSS feed.</li>
-                    <li>Paste the copied content into the text box below.</li>
-                    <li>Select your preferred language and click "Convert to ICS".</li>
-                    <li>Download the generated ICS file to import into your calendar application.</li>
-                </ol>
-            </div>
+            <h2>Input Location and Date Range</h2>
             <form id="zmanim-form">
-                <textarea id="zmanim-input" rows="10" cols="50" placeholder="Paste your Zmanim data here from Chabad.org (monthly view or RSS feed)..."></textarea>
-
                 <div>
-                    <label for="language-select">Language:</label>
-                    <select id="language-select" name="language">
-                        <option value="en">English</option>
-                        <option value="he">Hebrew</option>
-                    </select>
+                    <label for="latitude">Latitude:</label>
+                    <input type="number" id="latitude" step="0.0001" required>
                 </div>
-
-                <button type="submit">Convert to ICS</button>
+                <div>
+                    <label for="longitude">Longitude:</label>
+                    <input type="number" id="longitude" step="0.0001" required>
+                </div>
+                <div>
+                    <button type="button" id="get-location">Use My Current Location</button>
+                </div>
+                <div>
+                    <p>Can't find your coordinates? Try <a href="https://www.latlong.net/" target="_blank">LatLong.net</a> to find your latitude and longitude.</p>
+                </div>
+                <div>
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" id="start-date" required>
+                </div>
+                <div>
+                    <label for="end-date">End Date:</label>
+                    <input type="date" id="end-date" required>
+                </div>
+                <button type="submit">Generate ICS</button>
             </form>
         </section>
 
