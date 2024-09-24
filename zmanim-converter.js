@@ -20,26 +20,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const latitude = document.getElementById('latitude').value;
-        const longitude = document.getElementById('longitude').value;
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
+        const latitude = parseFloat(document.getElementById('latitude').value);
+        const longitude = parseFloat(document.getElementById('longitude').value);
+        const startDate = new Date(document.getElementById('start-date').value);
+        const endDate = new Date(document.getElementById('end-date').value);
+        const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        fetchZmanim(latitude, longitude, startDate, endDate);
+        generateZmanim(latitude, longitude, tzid, startDate, endDate);
     });
 
-    async function fetchZmanim(latitude, longitude, startDate, endDate) {
-        const apiUrl = `https://www.hebcal.com/zmanim?cfg=json&latitude=${latitude}&longitude=${longitude}&start=${startDate}&end=${endDate}`;
-
+    function generateZmanim(latitude, longitude, tzid, startDate, endDate) {
         try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
+            const {GeoLocation, Zmanim} = hebcal;
+            const gloc = new GeoLocation(null, latitude, longitude, 0, tzid);
+            const events = [];
 
-            if (!data.items || !Array.isArray(data.items)) {
-                throw new Error('Unexpected API response format');
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const zmanim = new Zmanim(gloc, date, false);
+
+                events.push(
+                    createICSEvent("Alot HaShachar", zmanim.alotHaShachar(), tzid),
+                    createICSEvent("Sunrise", zmanim.sunrise(), tzid),
+                    createICSEvent("Sof Zman Shma GRA", zmanim.sofZmanShma(), tzid),
+                    createICSEvent("Sof Zman Tfilla GRA", zmanim.sofZmanTfilla(), tzid),
+                    createICSEvent("Chatzot", zmanim.chatzot(), tzid),
+                    createICSEvent("Mincha Gedola", zmanim.minchaGedola(), tzid),
+                    createICSEvent("Mincha Ketana", zmanim.minchaKetana(), tzid),
+                    createICSEvent("Plag HaMincha", zmanim.plagHaMincha(), tzid),
+                    createICSEvent("Candle Lighting", zmanim.sunsetOffset(-18, true), tzid),
+                    createICSEvent("Sunset", zmanim.sunset(), tzid),
+                    createICSEvent("Tzeit Hakochavim", zmanim.tzeit(), tzid)
+                );
             }
 
-            const icsData = convertZmanimToICS(data.items);
+            const icsData = generateICSContent(events);
             conversionMessage.textContent = 'Conversion successful!';
             outputSection.style.display = 'block';
             downloadButton.onclick = function() {
@@ -47,34 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         } catch (error) {
             conversionMessage.textContent = 'Error: ' + error.message;
-            console.error('API Response:', error);
+            console.error('Zmanim Generation Error:', error);
             outputSection.style.display = 'block';
         }
     }
 
-    function convertZmanimToICS(zmanimData) {
-        if (!zmanimData || zmanimData.length === 0) {
-            throw new Error('No zmanim data available for the specified date range and location');
-        }
-
-        let icsEvents = zmanimData.map(item => {
-            if (!item.title || !item.date) {
-                console.warn('Invalid item:', item);
-                return null;
-            }
-            return createICSEvent(item.title, new Date(item.date));
-        }).filter(event => event !== null);
-
-        if (icsEvents.length === 0) {
-            throw new Error('No valid events could be created from the data');
-        }
-
-        return generateICSContent(icsEvents);
-    }
-
-    function createICSEvent(summary, date) {
-        const dtstart = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        const dtend = new Date(date.getTime() + 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    function createICSEvent(summary, date, tzid) {
+        if (!date) return null;
+        const dtstart = hebcal.Zmanim.formatISOWithTimeZone(tzid, date);
+        const dtend = hebcal.Zmanim.formatISOWithTimeZone(tzid, new Date(date.getTime() + 60 * 60 * 1000));
 
         return `BEGIN:VEVENT
 SUMMARY:${summary}
@@ -84,11 +79,12 @@ END:VEVENT`;
     }
 
     function generateICSContent(events) {
+        const validEvents = events.filter(event => event !== null);
         return `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Zmanim to ICS Converter//EN
 CALSCALE:GREGORIAN
-${events.join('\n')}
+${validEvents.join('\n')}
 END:VCALENDAR`;
     }
 
