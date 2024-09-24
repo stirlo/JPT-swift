@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded');
     console.log('Hebcal library status:', typeof hebcal !== 'undefined' ? 'Loaded' : 'Not loaded');
+    if (typeof hebcal !== 'undefined') {
+        console.log('Hebcal object:', hebcal);
+        console.log('GeoLocation:', hebcal.GeoLocation);
+        console.log('Zmanim:', hebcal.Zmanim);
+    }
 
     const form = document.getElementById('zmanim-form');
     const outputSection = document.getElementById('output-section');
@@ -29,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function getCurrentLocation() {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('latitude').value = position.coords.latitude;
-                document.getElementById('longitude').value = position.coords.longitude;
+                document.getElementById('latitude').value = position.coords.latitude.toFixed(3);
+                document.getElementById('longitude').value = position.coords.longitude.toFixed(3);
                 document.getElementById('timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
             }, function(error) {
                 console.error("Error getting location:", error);
@@ -49,8 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Missing required parameters');
             }
 
-            latitude = parseFloat(latitude);
-            longitude = parseFloat(longitude);
+            latitude = parseFloat(latitude).toFixed(3);
+            longitude = parseFloat(longitude).toFixed(3);
 
             if (isNaN(latitude) || isNaN(longitude)) {
                 throw new Error('Invalid latitude or longitude');
@@ -62,14 +67,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Hebcal library is not loaded');
             }
 
-            const { GeoLocation, Zmanim } = hebcal;
+            console.log('Hebcal object:', hebcal);
 
-            if (!GeoLocation || !Zmanim) {
+            if (!hebcal.GeoLocation || !hebcal.Zmanim) {
                 throw new Error('Required Hebcal components are not available');
             }
 
             console.log('Creating GeoLocation with:', { latitude, longitude, tzid });
-            const location = new GeoLocation(null, latitude, longitude, 0, tzid);
+            const location = new hebcal.GeoLocation(null, latitude, longitude, 0, tzid);
 
             // Generate zmanim for each day in the date range
             const start = new Date(startDate);
@@ -83,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
             while (currentDate <= end) {
-                const zmanim = new Zmanim(location, currentDate);
+                const zmanim = new hebcal.Zmanim(location, currentDate);
 
                 // Add zmanim events to ICS content
                 icsContent.push(
