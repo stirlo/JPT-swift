@@ -11,7 +11,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="1F5D3_color.png">
     <link rel="apple-touch-icon" sizes="180x180" href="1F5D3_color.png">
     <!-- Include local Hebcal API -->
-    <script src="hebcal-bundle.min.js"></script>
+    <script src="hebcal-bundle.min.js" defer></script>
+      <!-- Include our main JavaScript file -->
+    <script src="zmanim-converter.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -51,8 +53,7 @@
     <footer>
         <p>&copy; <span id="current-year"></span> Zmanim to ICS Converter. All rights reserved.</p>
     </footer>
-    <!-- Include our main JavaScript file -->
-    <script src="zmanim-converter.js"></script>
+  
     <!-- Set current year in footer -->
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
