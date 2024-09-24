@@ -11,9 +11,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="1F5D3_color.png">
     <link rel="apple-touch-icon" sizes="180x180" href="1F5D3_color.png">
     <!-- Include local Hebcal API -->
-   <!-- <script src="bundle.js" defer></script> --> 
     <script src="bundle.min.js" defer></script>
-      <!-- Include our main JavaScript file -->
+    <!-- Include our main JavaScript file -->
     <script src="zmanim-converter.js" defer></script>
 </head>
 <body>
@@ -30,6 +29,10 @@
                 <input type="number" id="longitude" name="longitude" step="0.0001" required>
             </div>
             <button type="button" id="get-location">Use My Current Location</button>
+            <div class="form-group">
+                <label for="timezone">Timezone:</label>
+                <input type="text" id="timezone" name="timezone" required>
+            </div>
             <div class="form-group">
                 <label for="start-date">Start Date:</label>
                 <input type="date" id="start-date" name="start-date" required>
@@ -54,7 +57,7 @@
     <footer>
         <p>&copy; <span id="current-year"></span> Zmanim to ICS Converter. All rights reserved.</p>
     </footer>
-  
+
     <!-- Set current year in footer -->
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
