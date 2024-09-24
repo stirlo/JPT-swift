@@ -1,90 +1,103 @@
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
-    color: #333;
-    max-width: 800px;
-    margin: 0 auto;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
     padding: 20px;
+    flex: 1;
 }
 
-header, footer {
+h1 {
+    color: #333;
     text-align: center;
-    padding: 20px 0;
 }
 
-h1, h2, h3 {
-    color: #2c3e50;
-}
-
-.instructions {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
-
+/* Form styling */
 form {
+    background: #f4f4f4;
+    padding: 20px;
     margin-bottom: 20px;
 }
 
-textarea, select, button {
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="number"],
+input[type="date"] {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+    padding: 8px;
+    border: 1px solid #ddd;
 }
 
 button {
-    background-color: #007bff;
-    color: white;
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #333;
+    color: #fff;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background: #555;
 }
 
+/* Output section styling */
 #output-section {
-    background-color: #e9ecef;
-    border-radius: 5px;
-    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #121212;
-        color: #e0e0e0;
-    }
+/* Preview section styling */
+#preview-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
 
-    h1, h2, h3 {
-        color: #bb86fc;
-    }
+#preview-section h2 {
+    margin-top: 0;
+}
 
-    .instructions {
-        background-color: #1e1e1e;
-        border-color: #333;
-    }
+#preview-content h3 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
 
-    textarea, select {
-        background-color: #2a2a2a;
-        color: #e0e0e0;
-        border-color: #444;
-    }
+#preview-content ul {
+    list-style-type: none;
+    padding-left: 0;
+}
 
-    button {
-        background-color: #bb86fc;
-        color: #121212;
-    }
+#preview-content li {
+    margin-bottom: 5px;
+}
 
-    button:hover {
-        background-color: #9a67ea;
-    }
-
-    #output-section {
-        background-color: #1e1e1e;
-    }
+/* Footer styling */
+footer {
+    text-align: center;
+    padding: 10px;
+    background: #333;
+    color: #fff;
 }
