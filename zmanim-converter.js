@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded');
+    console.log('Hebcal library status:', typeof hebcal !== 'undefined' ? 'Loaded' : 'Not loaded');
+
     const form = document.getElementById('zmanim-form');
     const outputSection = document.getElementById('output-section');
     const conversionMessage = document.getElementById('conversion-message');
@@ -6,35 +9,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const downloadButton = document.getElementById('download-ics');
     const getLocationButton = document.getElementById('get-location');
 
-    getLocationButton.addEventListener('click', function() {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('latitude').value = position.coords.latitude.toFixed(4);
-                document.getElementById('longitude').value = position.coords.longitude.toFixed(4);
-            }, function(error) {
-                alert("Error: Unable to retrieve location.");
-            });
-        } else {
-            alert("Geolocation is not supported by your browser");
-        }
-    });
+    form.addEventListener('submit', handleFormSubmit);
+    getLocationButton.addEventListener('click', getCurrentLocation);
 
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const latitude = parseFloat(document.getElementById('latitude').value);
-        const longitude = parseFloat(document.getElementById('longitude').value);
-        const startDate = new Date(document.getElementById('start-date').value + 'T00:00:00');
-        const endDate = new Date(document.getElementById('end-date').value + 'T23:59:59');
-        const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    function handleFormSubmit(event) {
+        event.preventDefault();
 
-        console.log('Form submitted with:', { latitude, longitude, startDate, endDate, tzid });
+        const latitude = document.getElementById('latitude').value;
+        const longitude = document.getElementById('longitude').value;
+        const tzid = document.getElementById('timezone').value;
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+
+        console.log('Form submission values:', { latitude, longitude, tzid, startDate, endDate });
 
         generateZmanim(latitude, longitude, tzid, startDate, endDate);
-    });
+    }
+
+    function getCurrentLocation() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                document.getElementById('timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }, function(error) {
+                console.error("Error getting location:", error);
+                alert("Unable to retrieve your location. Please enter it manually.");
+            });
+        } else {
+            alert("Geolocation is not supported by your browser. Please enter your location manually.");
+        }
+    }
 
     function generateZmanim(latitude, longitude, tzid, startDate, endDate) {
+        console.log('generateZmanim called with:', { latitude, longitude, tzid, startDate, endDate });
+
         try {
-            console.log('Generating Zmanim for:', { latitude, longitude, tzid, startDate, endDate });
+            if (!latitude || !longitude || !tzid || !startDate || !endDate) {
+                throw new Error('Missing required parameters');
+            }
+
+            latitude = parseFloat(latitude);
+            longitude = parseFloat(longitude);
+
+            if (isNaN(latitude) || isNaN(longitude)) {
+                throw new Error('Invalid latitude or longitude');
+            }
+
+            console.log('Parsed values:', { latitude, longitude, tzid, startDate, endDate });
 
             if (typeof hebcal === 'undefined') {
                 throw new Error('Hebcal library is not loaded');
@@ -42,50 +64,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const { GeoLocation, Zmanim } = hebcal;
 
-            const gloc = new GeoLocation(null, latitude, longitude, 0, tzid);
-            console.log('GeoLocation created:', gloc);
-
-            const events = [];
-            const previewData = [];
-
-            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-                console.log('Processing date:', date);
-
-                const zmanim = new Zmanim(gloc, date, false);
-                console.log('Zmanim object created for', date);
-
-                const dailyZmanim = [
-                    {name: "Alot HaShachar", time: zmanim.alotHaShachar()},
-                    {name: "Sunrise", time: zmanim.sunrise()},
-                    {name: "Sof Zman Shma GRA", time: zmanim.sofZmanShma()},
-                    {name: "Sof Zman Tfilla GRA", time: zmanim.sofZmanTfilla()},
-                    {name: "Chatzot", time: zmanim.chatzot()},
-                    {name: "Mincha Gedola", time: zmanim.minchaGedola()},
-                    {name: "Mincha Ketana", time: zmanim.minchaKetana()},
-                    {name: "Plag HaMincha", time: zmanim.plagHaMincha()},
-                    {name: "Candle Lighting", time: zmanim.sunsetOffset(-18, true)},
-                    {name: "Sunset", time: zmanim.sunset()},
-                    {name: "Tzeit Hakochavim", time: zmanim.tzeit()}
-                ];
-
-                console.log('Daily Zmanim:', dailyZmanim);
-
-                previewData.push({date: date, zmanim: dailyZmanim});
-
-                dailyZmanim.forEach(({name, time}) => {
-                    if (time) {
-                        events.push(createICSEvent(name, time, tzid));
-                    }
-                });
+            if (!GeoLocation || !Zmanim) {
+                throw new Error('Required Hebcal components are not available');
             }
 
-            const icsData = generateICSContent(events);
-            displayPreview(previewData);
-            conversionMessage.textContent = 'Conversion successful!';
+            console.log('Creating GeoLocation with:', { latitude, longitude, tzid });
+            const location = new GeoLocation(null, latitude, longitude, 0, tzid);
+
+            // Generate zmanim for each day in the date range
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            let currentDate = new Date(start);
+
+            let icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Zmanim Converter//EN'
+            ];
+
+            while (currentDate <= end) {
+                const zmanim = new Zmanim(location, currentDate);
+
+                // Add zmanim events to ICS content
+                icsContent.push(
+                    'BEGIN:VEVENT',
+                    `DTSTART:${formatDate(zmanim.sunrise)}`,
+                    `SUMMARY:Sunrise`,
+                    'END:VEVENT',
+
+                    'BEGIN:VEVENT',
+                    `DTSTART:${formatDate(zmanim.sunset)}`,
+                    `SUMMARY:Sunset`,
+                    'END:VEVENT'
+                );
+
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            icsContent.push('END:VCALENDAR');
+
+            const icsString = icsContent.join('\r\n');
+            previewContent.textContent = icsString;
+            conversionMessage.textContent = 'ICS file generated successfully!';
+            downloadButton.style.display = 'block';
             outputSection.style.display = 'block';
-            downloadButton.onclick = function() {
-                downloadICS(icsData);
+
+            // Set up download button
+            downloadButton.onclick = () => {
+                const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'zmanim.ics';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             };
+
         } catch (error) {
             console.error('Error in generateZmanim:', error);
             conversionMessage.textContent = `Error: ${error.message}. Please check your inputs and try again.`;
@@ -93,47 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function createICSEvent(summary, date, tzid) {
-        if (!date) return null;
-        const dtstart = hebcal.Zmanim.formatISOWithTimeZone(tzid, date);
-        const dtend = hebcal.Zmanim.formatISOWithTimeZone(tzid, new Date(date.getTime() + 60 * 60 * 1000));
-
-        return `BEGIN:VEVENT
-SUMMARY:${summary}
-DTSTART:${dtstart}
-DTEND:${dtend}
-END:VEVENT`;
-    }
-
-    function generateICSContent(events) {
-        const validEvents = events.filter(event => event !== null);
-        return `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Zmanim to ICS Converter//EN
-CALSCALE:GREGORIAN
-${validEvents.join('\n')}
-END:VCALENDAR`;
-    }
-
-    function displayPreview(previewData) {
-        let previewHtml = '';
-        previewData.forEach(day => {
-            previewHtml += `<h3>${day.date.toDateString()}</h3><ul>`;
-            day.zmanim.forEach(zman => {
-                if (zman.time) {
-                    previewHtml += `<li>${zman.name}: ${zman.time.toLocaleTimeString()}</li>`;
-                }
-            });
-            previewHtml += '</ul>';
-        });
-        previewContent.innerHTML = previewHtml;
-    }
-
-    function downloadICS(icsData) {
-        const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'zmanim.ics';
-        link.click();
+    function formatDate(date) {
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
 });
