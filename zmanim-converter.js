@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('latitude').value = position.coords.latitude.toFixed(4);
                 document.getElementById('longitude').value = position.coords.longitude.toFixed(4);
             }, function(error) {
-                alert("Error: " + error.message);
+                alert("Error: Unable to retrieve location.");
             });
         } else {
             alert("Geolocation is not supported by your browser");
@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 downloadICS(icsData);
             };
         } catch (error) {
-            conversionMessage.textContent = 'Error: ' + error.message;
-            console.error('Zmanim Generation Error:', error);
+            conversionMessage.textContent = 'Error: Unable to generate Zmanim. Please check your inputs.';
             outputSection.style.display = 'block';
         }
     }
